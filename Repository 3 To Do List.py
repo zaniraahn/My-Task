@@ -40,13 +40,13 @@ def next_id(tasks: List[Dict[str, Any]]) -> int:
 
 
 def add_task(tasks: List[Dict[str, Any]]) -> None:
-    title = input("Judul: ").strip()
+    title = input("📝 Judul: ").strip()
     if not title:
-        print("Judul tidak boleh kosong")
+        print("❌ Judul tidak boleh kosong")
         return
-    kind = input("Tipe (tugas/kegiatan/acara) [tugas]: ").strip() or "tugas"
-    desc = input("Deskripsi (opsional): ").strip()
-    due = input("Tanggal/Jam (opsional, contoh 2026-01-31 15:00): ").strip()
+    kind = input("🏷️ Tipe (tugas/kegiatan/acara) [tugas]: ").strip() or "tugas"
+    desc = input("🗒️ Deskripsi (opsional): ").strip()
+    due = input("🕒 Tanggal/Jam (opsional, contoh 2026-01-31 15:00): ").strip()
     task = {
         "id": next_id(tasks),
         "title": title,
@@ -61,7 +61,7 @@ def add_task(tasks: List[Dict[str, Any]]) -> None:
     }
     tasks.append(task)
     save_tasks(tasks)
-    print(f"Tambah tugas berhasil (id={task['id']})")
+    print(f"✅ Tambah tugas berhasil (id={task['id']})")
 
 
 def find_task(tasks: List[Dict[str, Any]], tid: int) -> Dict[str, Any] | None:
@@ -82,18 +82,18 @@ def edit_task(tasks: List[Dict[str, Any]]) -> None:
         print("Tugas tidak ditemukan")
         return
     if t.get("deleted"):
-        print("Tugas sudah dihapus. Restore dulu jika ingin edit.")
+        print("🗑️ Tugas sudah dihapus. Restore dulu jika ingin edit.")
         return
     # simpan snapshot ke history
     snapshot = {k: t[k] for k in t if k not in ("history",)}
     snapshot["snapshot_at"] = now_ts()
     t.setdefault("history", []).append(snapshot)
-    print("Biarkan kosong untuk mempertahankan nilai lama.")
-    title = input(f"Judul [{t['title']}]: ").strip() or t["title"]
-    desc = input(f"Deskripsi [{t.get('description','')}]: ").strip() or t.get("description","")
-    kind = input(f"Tipe [{t.get('type','tugas')}]: ").strip() or t.get("type","tugas")
-    due = input(f"Tanggal/Jam [{t.get('due','')}]: ").strip() or t.get("due","")
-    status = input(f"Status (selesai/belum) [{t.get('status','belum')}]: ").strip() or t.get("status","belum")
+    print("(Biarkan kosong untuk mempertahankan nilai lama)")
+    title = input(f"📝 Judul [{t['title']}]: ").strip() or t["title"]
+    desc = input(f"🗒️ Deskripsi [{t.get('description','')}]: ").strip() or t.get("description","")
+    kind = input(f"🏷️ Tipe [{t.get('type','tugas')}]: ").strip() or t.get("type","tugas")
+    due = input(f"🕒 Tanggal/Jam [{t.get('due','')}]: ").strip() or t.get("due","")
+    status = input(f"✅ Status (selesai/belum) [{t.get('status','belum')}]: ").strip() or t.get("status","belum")
     t.update({
         "title": title,
         "description": desc,
@@ -103,7 +103,7 @@ def edit_task(tasks: List[Dict[str, Any]]) -> None:
         "updated_at": now_ts()
     })
     save_tasks(tasks)
-    print("Edit disimpan. Riwayat edit tersedia untuk revert.")
+    print("✅ Edit disimpan. Riwayat edit tersedia untuk revert.")
 
 
 def delete_task(tasks: List[Dict[str, Any]]) -> None:
@@ -117,16 +117,16 @@ def delete_task(tasks: List[Dict[str, Any]]) -> None:
         print("Tugas tidak ditemukan")
         return
     if t.get("deleted"):
-        print("Tugas sudah dihapus")
+        print("ℹ️ Tugas sudah dihapus")
         return
-    confirm = input("Pindah ke trash? (y/n): ").strip().lower()
+    confirm = input("🗑️ Pindah ke trash? (y/n): ").strip().lower()
     if confirm != "y":
-        print("Dibatalkan")
+        print("✖️ Dibatalkan")
         return
     t["deleted"] = True
     t["updated_at"] = now_ts()
     save_tasks(tasks)
-    print("Tugas dipindah ke trash")
+    print("🗑️ Tugas dipindah ke trash")
 
 
 def restore_task(tasks: List[Dict[str, Any]]) -> None:
@@ -140,12 +140,12 @@ def restore_task(tasks: List[Dict[str, Any]]) -> None:
         print("Tugas tidak ditemukan")
         return
     if not t.get("deleted"):
-        print("Tugas tidak berada di trash")
+        print("ℹ️ Tugas tidak berada di trash")
         return
     t["deleted"] = False
     t["updated_at"] = now_ts()
     save_tasks(tasks)
-    print("Tugas berhasil direstore")
+    print("♻️ Tugas berhasil direstore")
 
 
 def list_tasks(tasks: List[Dict[str, Any]], show_deleted: bool = False) -> None:
@@ -153,11 +153,13 @@ def list_tasks(tasks: List[Dict[str, Any]], show_deleted: bool = False) -> None:
     if not found:
         print("Tidak ada tugas.")
         return
+    type_emoji = {"tugas": "🛠️", "kegiatan": "🎯", "acara": "📅"}
     for t in sorted(found, key=lambda x: x["id"]):
-        del_mark = "[TRASH] " if t.get("deleted") else ""
-        status = "✓" if t.get("status") == "selesai" else " "
-        due = f" | Due: {t.get('due')}" if t.get('due') else ""
-        print(f"ID:{t['id']:3} {del_mark}{status} {t['title']}{due}")
+        del_mark = " 🗑️" if t.get("deleted") else ""
+        status = "✅" if t.get("status") == "selesai" else "⏳"
+        kind_icon = type_emoji.get(t.get("type","tugas"), "🏷️")
+        due = f" | 🕒 {t.get('due')}" if t.get('due') else ""
+        print(f"ID:{t['id']:3}{del_mark} {status} {kind_icon} {t['title']}{due}")
         if t.get("description"):
             print(f"    {t['description']}")
 
@@ -173,12 +175,12 @@ def mark_complete(tasks: List[Dict[str, Any]]) -> None:
         print("Tugas tidak ditemukan")
         return
     if t.get("deleted"):
-        print("Tugas di trash — restore dahulu")
+        print("🗑️ Tugas di trash — restore dahulu")
         return
     t["status"] = "selesai" if t.get("status") != "selesai" else "belum"
     t["updated_at"] = now_ts()
     save_tasks(tasks)
-    print(f"Status diubah menjadi: {t['status']}")
+    print(f"🔁 Status diubah menjadi: {t['status']}")
 
 
 def view_history(tasks: List[Dict[str, Any]]) -> None:
@@ -193,7 +195,7 @@ def view_history(tasks: List[Dict[str, Any]]) -> None:
         return
     history = t.get("history", [])
     if not history:
-        print("Belum ada riwayat edit untuk tugas ini.")
+        print("ℹ️ Belum ada riwayat edit untuk tugas ini.")
         return
     for i, h in enumerate(reversed(history), 1):
         print(f"Versi {len(history)-i+1} (snapshot_at={h.get('snapshot_at')}):")
@@ -216,7 +218,7 @@ def revert_edit(tasks: List[Dict[str, Any]]) -> None:
         return
     history = t.get("history", [])
     if not history:
-        print("Tidak ada versi untuk direvert")
+        print("ℹ️ Tidak ada versi untuk direvert")
         return
     # tampilkan versi
     for idx, h in enumerate(history, 1):
@@ -227,7 +229,7 @@ def revert_edit(tasks: List[Dict[str, Any]]) -> None:
         print("Pilihan tidak valid")
         return
     if sel <= 0 or sel > len(history):
-        print("Dibatalkan")
+        print("✖️ Dibatalkan")
         return
     snap = history[sel - 1]
     # simpan current ke history sebelum mengganti
@@ -239,33 +241,33 @@ def revert_edit(tasks: List[Dict[str, Any]]) -> None:
         t[key] = snap.get(key)
     t["updated_at"] = now_ts()
     save_tasks(tasks)
-    print("Revert berhasil")
+    print("✅ Revert berhasil")
 
 
 def purge_deleted(tasks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    confirm = input("Hapus permanen semua item di trash? (y/n): ").strip().lower()
+    confirm = input("🧹 Hapus permanen semua item di trash? (y/n): ").strip().lower()
     if confirm != "y":
-        print("Dibatalkan")
+        print("✖️ Dibatalkan")
         return tasks
     new_tasks = [t for t in tasks if not t.get("deleted")]
     save_tasks(new_tasks)
-    print("Trash dikosongkan")
+    print("🧹 Trash dikosongkan")
     return new_tasks
 
 
 def print_menu() -> None:
-    print("\n=== To-Do List ===")
-    print("1. Tambah tugas")
-    print("2. Edit tugas")
-    print("3. Hapus (ke trash)")
-    print("4. Restore dari trash")
-    print("5. List tugas")
-    print("6. List termasuk trash")
-    print("7. Tandai selesai/belum selesai")
-    print("8. Lihat riwayat edit")
-    print("9. Revert edit")
-    print("10. Kosongkan trash (hapus permanen)")
-    print("0. Keluar")
+    print("\n📋 === To-Do List ===")
+    print("1. ➕ Tambah tugas")
+    print("2. ✏️ Edit tugas")
+    print("3. 🗑️ Hapus (ke trash)")
+    print("4. ♻️ Restore dari trash")
+    print("5. 📄 List tugas")
+    print("6. 📁 List termasuk trash")
+    print("7. ✅ Tandai selesai/belum selesai")
+    print("8. 🕘 Lihat riwayat edit")
+    print("9. 🔁 Revert edit")
+    print("10. 🧹 Kosongkan trash (hapus permanen)")
+    print("0. ❌ Keluar")
 
 
 def main():
