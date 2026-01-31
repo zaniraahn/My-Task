@@ -17,6 +17,11 @@ from typing import List, Dict, Any
 DATA_FILE = "tasks.json"
 
 
+def print_separator(char: str = "-", length: int = 50) -> None:
+    line = char * length
+    print(line)
+
+
 def now_ts() -> str:
     return datetime.datetime.now().isoformat()
 
@@ -154,7 +159,8 @@ def list_tasks(tasks: List[Dict[str, Any]], show_deleted: bool = False) -> None:
         print("Tidak ada tugas.")
         return
     type_emoji = {"tugas": "🛠️", "kegiatan": "🎯", "acara": "📅"}
-    for t in sorted(found, key=lambda x: x["id"]):
+    print_separator()
+    for idx, t in enumerate(sorted(found, key=lambda x: x["id"])):
         del_mark = " 🗑️" if t.get("deleted") else ""
         status = "✅" if t.get("status") == "selesai" else "⏳"
         kind_icon = type_emoji.get(t.get("type","tugas"), "🏷️")
@@ -162,6 +168,10 @@ def list_tasks(tasks: List[Dict[str, Any]], show_deleted: bool = False) -> None:
         print(f"ID:{t['id']:3}{del_mark} {status} {kind_icon} {t['title']}{due}")
         if t.get("description"):
             print(f"    {t['description']}")
+        # separator antar item (kecuali setelah item terakhir)
+        if idx != len(found) - 1:
+            print_separator(".", 50)
+    print_separator()
 
 
 def mark_complete(tasks: List[Dict[str, Any]]) -> None:
@@ -198,12 +208,14 @@ def view_history(tasks: List[Dict[str, Any]]) -> None:
         print("ℹ️ Belum ada riwayat edit untuk tugas ini.")
         return
     for i, h in enumerate(reversed(history), 1):
+        print_separator()
         print(f"Versi {len(history)-i+1} (snapshot_at={h.get('snapshot_at')}):")
         print(f"  Judul: {h.get('title')}")
         print(f"  Deskripsi: {h.get('description')}")
         print(f"  Tipe: {h.get('type')}")
         print(f"  Due: {h.get('due')}")
         print(f"  Status: {h.get('status')}")
+    print_separator()
 
 
 def revert_edit(tasks: List[Dict[str, Any]]) -> None:
@@ -222,7 +234,9 @@ def revert_edit(tasks: List[Dict[str, Any]]) -> None:
         return
     # tampilkan versi
     for idx, h in enumerate(history, 1):
+        print_separator()
         print(f"{idx}. {h.get('title')} (snapshot_at={h.get('snapshot_at')})")
+    print_separator()
     try:
         sel = int(input("Pilih nomor versi untuk restore (0 untuk batal): ").strip())
     except ValueError:
@@ -257,16 +271,20 @@ def purge_deleted(tasks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 def print_menu() -> None:
     print("\n📋 === To-Do List ===")
+    print_separator()
     print("1. ➕ Tambah tugas")
     print("2. ✏️ Edit tugas")
     print("3. 🗑️ Hapus (ke trash)")
     print("4. ♻️ Restore dari trash")
+    print_separator()
     print("5. 📄 List tugas")
     print("6. 📁 List termasuk trash")
     print("7. ✅ Tandai selesai/belum selesai")
+    print_separator()
     print("8. 🕘 Lihat riwayat edit")
     print("9. 🔁 Revert edit")
     print("10. 🧹 Kosongkan trash (hapus permanen)")
+    print_separator()
     print("0. ❌ Keluar")
 
 
@@ -275,6 +293,8 @@ def main():
     while True:
         print_menu()
         cmd = input("Pilih: ").strip()
+        # separator ketika berpindah ke menu/aksi
+        print_separator("-", 60)
         if cmd == "1":
             add_task(tasks)
         elif cmd == "2":
